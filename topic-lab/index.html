@@ -122,7 +122,7 @@ dialog img{display:block;max-width:100%;background:#fff;border-radius:6px;margin
   <div class="eyebrow">Grand Line · Topic Labs</div>
   <h1>主題<em>探究</em>實驗室</h1>
   <p>《偉大航道學力航海圖》的每一個寶藏主題，都有一座實驗台。拉滑桿、拖曳點與圖形，看數值、算式和圖形怎麼立刻跟著變，親手找出同學最常掉進去的陷阱。每個迷思都附上真實考題的作答證據，點一下就能看到原題。</p>
-  <div class="links"><a href="../">← 偉大航道學力航海圖（教師版）</a><a href="../equation-game/">學生闖關島 ↗</a><button id="toHub" hidden>全部主題</button></div>
+  <div class="links"><a href="../">← 偉大航道學力航海圖（教師版）</a><a href="../topic-game/">寶藏主題闖關群島 ↗</a><a href="../equation-game/">一元一次方程式闖關島 ↗</a><button id="toHub" hidden>全部主題</button></div>
 </section>
 <main id="app"></main>
 <dialog id="dlg"><form method="dialog" style="display:flex;justify-content:space-between;gap:10px;align-items:start"><b id="dlgT"></b><button class="btn">關閉</button></form><img id="dlgI" alt=""></dialog>
@@ -525,7 +525,7 @@ function lab(c){const T=A[c],L=LABS[c];$('#toHub').hidden=false;document.title=`
    <section class="lab"><h2><small>${c}｜${grade(c)} 年級</small>${esc(T.name)}</h2><p class="core"><b>核心概念：</b>${esc(T.core)}</p>
    <div class="myths">${T.mis.map((m,i)=>`<div class="myth"><b>迷思 ${i+1}：</b>${esc(m.t)}${m.ev.map(([id,o,t])=>`<button class="ev" data-ev="${id}"><span>${id[0]==='C'?id.slice(1).replace('-',' 年會考第 ')+' 題':id.slice(1).replace(/^(\d+)-(\d)-(\d+)$/,(_,y,g,n)=>`${y}.05 ${g==='7'?'七':'八'}年級篩選第 ${n} 題`)}・選項 ${o}</span>　${esc(t)}　<u>看原題</u></button>`).join('')}</div>`).join('')}</div>
    <div id="bench">${L.html()}</div>
-   <div class="tasks"><h3>探究任務</h3><ol>${L.tasks.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><h3 style="margin-top:10px">老師的提問</h3><ol>${T.q.map(q=>`<li>${esc(q)}</li>`).join('')}</ol><p class="src">提問取自《偉大航道學力航海圖》迷思解藥。</p></div></section>`;
+   <div class="tasks"><h3>探究任務</h3><ol>${L.tasks.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><h3 style="margin-top:10px">老師的提問</h3><ol>${T.q.map(q=>`<li>${esc(q)}</li>`).join('')}</ol><p class="src">提問取自《偉大航道學力航海圖》迷思解藥。</p><p style="margin-top:10px"><a class="btn pri" href="../topic-game/#${c}">操作完了？到「寶藏主題闖關群島」闖這座島 →</a></p></div></section>`;
   const root=$('#bench');L.init(root);
   root.addEventListener('click',e=>{const m=e.target.closest('[data-mode]');if(!m)return;const i=+m.dataset.mode;$$('[data-mode]',root).forEach(b=>{b.classList.toggle('on',+b.dataset.mode===i);b.setAttribute('aria-pressed',+b.dataset.mode===i)});$$('[data-m]',root).forEach(x=>x.hidden=+x.dataset.m!==i);root._mode&&root._mode(i)});
   $('#back').onclick=()=>{location.hash=''};$('#jump').onchange=e=>{location.hash=e.target.value};window.scrollTo(0,0)}
