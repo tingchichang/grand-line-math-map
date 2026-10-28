@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>方程式探究實驗室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&family=Pirata+One&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+/* Layout: same treasure-map ground as the teacher site; each lab is a workbench card with controls on one side and a live stage on the other. */
+:root{
+  --paper:#f2e4c4; --paper2:#e8d3a6; --card:#fbf3df; --ink:#2a1a0f; --ink2:#5b4630;
+  --red:#b8231a; --gold:#c98a12; --sea:#17405e; --sea2:#2a6a8f; --line:#c9ae7c;
+  --good:#2f7a3d; --bad:#b8231a; --shadow:rgba(60,35,10,.18); --xbox:#2a6a8f; --unit:#c98a12; --neg:#b8231a;
+  --f-display:"Noto Serif TC","Songti TC",serif; --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-pirate:"Pirata One","Noto Serif TC",serif; --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0e1a26; --paper2:#13263a; --card:#182c40; --ink:#f1e5c8; --ink2:#c9b48c;
+  --red:#ff6b57; --gold:#f2bf4a; --sea:#7fc2e8; --sea2:#9fd3f0; --line:#33506b;
+  --good:#6fcf7f; --bad:#ff6b57; --shadow:rgba(0,0,0,.4); --xbox:#5fa8d6; --unit:#e0a93a; --neg:#ff6b57; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0e1a26; --paper2:#13263a; --card:#182c40; --ink:#f1e5c8; --ink2:#c9b48c;
+  --red:#ff6b57; --gold:#f2bf4a; --sea:#7fc2e8; --sea2:#9fd3f0; --line:#33506b;
+  --good:#6fcf7f; --bad:#ff6b57; --shadow:rgba(0,0,0,.4); --xbox:#5fa8d6; --unit:#e0a93a; --neg:#ff6b57; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;
+  background-image:radial-gradient(circle at 12% 8%,var(--paper2) 0,transparent 40%),radial-gradient(circle at 90% 60%,var(--paper2) 0,transparent 35%)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.3;margin:0}
+a{color:var(--sea2)} button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hero{padding-block:32px 16px;border-bottom:3px double var(--line)}
+.eyebrow{font-family:var(--f-pirate);font-size:20px;letter-spacing:.08em;color:var(--red)}
+.hero h1{font-size:clamp(28px,5vw,50px);font-weight:900}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero p{max-width:70ch;color:var(--ink2);margin:8px 0 0}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.links a{border:2px solid var(--sea);color:var(--sea);background:var(--card);padding:4px 12px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none}
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;padding:14px 0;position:sticky;top:0;background:var(--paper);z-index:5}
+nav.tabs button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+nav.tabs button[aria-selected="true"]{background:var(--sea);border-color:var(--sea);color:var(--paper)}
+.lab{display:none} .lab.on{display:block}
+.lab>header{display:grid;grid-template-columns:1fr minmax(260px,360px);gap:18px;align-items:start;margin-top:6px}
+.lab h2{font-size:clamp(22px,3vw,30px)}
+.lab h2 small{display:block;font-family:var(--f-mono);font-size:13px;color:var(--red);letter-spacing:.04em}
+.myth{background:var(--card);border-left:6px solid var(--red);padding:10px 14px;border-radius:6px;margin:10px 0 0;box-shadow:0 2px 6px var(--shadow)}
+.myth b{color:var(--red)}
+.real{background:var(--card);border:2px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+.real h3{font-size:14px;font-family:var(--f-body)}
+.bar{display:grid;grid-template-columns:2.2em minmax(7.5em,auto) 1fr 3.6em;gap:6px;align-items:center;margin:3px 0}
+.bar .x{font-size:13px;white-space:nowrap}.bar .x em{font-style:normal;color:var(--ink2);font-size:12px}
+.bar .t{height:12px;border-radius:6px;background:var(--paper2);overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--ink2)}
+.bar.ok .t i{background:var(--good)} .bar.ok span{color:var(--good);font-weight:700}
+.bar .o{font-family:var(--f-mono)} .bar .p{font-family:var(--f-mono);text-align:right}
+.bench{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:18px;margin-top:16px}
+.panel,.stage{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 3px 10px var(--shadow);min-width:0}
+.panel h3,.stage h3{font-size:16px;margin-bottom:8px}
+.ctl{margin:10px 0}
+.ctl label{display:flex;justify-content:space-between;font-weight:700;font-size:14px}
+.ctl output{font-family:var(--f-mono);color:var(--red);font-size:16px}
+input[type=range]{width:100%;accent-color:var(--red);height:28px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.btn{border:2px solid var(--sea);background:var(--card);color:var(--sea);border-radius:8px;padding:5px 10px;font-weight:700;font-size:14px}
+.btn.pri{background:var(--sea);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.eq{font-size:22px;text-align:center;padding:10px 6px;margin:6px 0;border-radius:10px;background:var(--paper);overflow-x:auto;overflow-y:hidden;transition:background .25s}
+.eq.good{background:color-mix(in srgb,var(--good) 18%,var(--paper))}
+.eq.bad{background:color-mix(in srgb,var(--bad) 18%,var(--paper))}
+.msg:empty{display:none}
+.msg{min-height:3.4em;padding:8px 12px;border-radius:8px;background:var(--paper);font-size:14px}
+.msg.good{color:var(--good);font-weight:700} .msg.bad{color:var(--bad);font-weight:700}
+.tasks{margin:14px 0 0;padding:12px 14px;background:var(--card);border:2px solid var(--line);border-radius:12px}
+.tasks h3{font-size:16px}
+.tasks ol{margin:6px 0 0;padding-left:1.4em}
+.tasks li{margin:4px 0}
+.tasks .ask{color:var(--sea2);font-size:13px;display:block}
+.tray{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.chip{display:inline-grid;place-items:center;user-select:none;-webkit-user-select:none;touch-action:manipulation;font-family:var(--f-mono);font-weight:700;cursor:grab;border:2px solid transparent}
+.chip.sel{border-color:var(--red);box-shadow:0 0 0 3px color-mix(in srgb,var(--red) 30%,transparent)}
+.chip.xb{width:46px;height:46px;border-radius:8px;background:var(--xbox);color:#fff;font-size:20px}
+.chip.ub{width:40px;height:40px;border-radius:50%;background:var(--unit);color:#2a1a0f;font-size:17px}
+.coin{width:48px;height:48px;border-radius:50%;font-size:15px;color:#2a1a0f;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.coin.c10{background:#d9b44a} .coin.c5{background:#c9c9c9;width:40px;height:40px;font-size:13px}
+.drop{border:3px dashed var(--line);border-radius:12px;transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--red);background:color-mix(in srgb,var(--red) 8%,transparent)}
+.purse{min-height:130px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.purse .coin{cursor:pointer}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+.ecard{border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper);cursor:grab}
+.ecard .v{font-size:13px;color:var(--ink2)}
+.ecard.ok{border-color:var(--good)} .ecard.no{border-color:var(--bad)}
+.ecard .tag{float:right;font-weight:700;font-size:13px}
+.ecard.ok .tag{color:var(--good)} .ecard.no .tag{color:var(--bad)}
+.slot{min-height:70px;padding:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:20px}
+.stagebox{position:relative}
+.zones{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:8px;pointer-events:none}
+.zones .drop{pointer-events:auto;border-color:transparent}
+.zones .drop.armed{border-color:var(--line)}
+.stagebox:not(.live) .zones .drop{pointer-events:none}
+svg{display:block;width:100%;height:auto}
+.hist{font-size:15px;margin-top:8px;max-height:220px;overflow:auto}
+.hist div{padding:4px 0;border-bottom:1px dotted var(--line)}
+.hist .why{font-size:12px;color:var(--ink2);margin-left:6px}
+.eqgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.sub{border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper)}
+.sub.ok{border-color:var(--good)} .sub .res{font-weight:700}
+.sub.ok .res{color:var(--good)} .sub.no .res{color:var(--bad)}
+.sub .lt{font-size:15px;overflow-x:auto}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px}
+.kv b{font-family:var(--f-mono)}
+.note{font-size:12px;color:var(--ink2)}
+.foot{margin-top:28px;border-top:3px double var(--line);padding-top:12px;font-size:12px;color:var(--ink2)}
+@media (max-width:820px){.lab>header,.bench{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body><div class="wrap">
+<section class="hero">
+  <div class="eyebrow">Grand Line · Equation Lab</div>
+  <h1>方程式<em>探究</em>實驗室</h1>
+  <p>五座實驗台，各對應一個學生最常卡住的一元一次方程式迷思。拉動滑桿、拖曳物件，看看圖形、算式和數值怎麼跟著改變，自己找出「為什麼要這樣做」。每座實驗台都附上真實考題與全國選項作答比例，資料取自《偉大航道學力航海圖》。</p>
+  <div class="links"><a href="../">← 偉大航道學力航海圖（教師版）</a><a href="../equation-game/">學生闖關島 ↗</a></div>
+</section>
+<nav class="tabs" role="tablist" aria-label="實驗台">
+  <button role="tab" data-lab="coin" aria-selected="true">① 列式工坊</button>
+  <button role="tab" data-lab="area" aria-selected="false">② 分配律面積</button>
+  <button role="tab" data-lab="bal" aria-selected="false">③ 等量公理天平</button>
+  <button role="tab" data-lab="sub" aria-selected="false">④ 代入偵探</button>
+  <button role="tab" data-lab="cond" aria-selected="false">⑤ 情境條件</button>
+</nav>
+
+<!-- ① 列式工坊 -->
+<section class="lab on" id="lab-coin">
+  <header>
+    <div><h2><small>M4｜學習內容 A-7-1、A-7-2</small>列式工坊：數量要乘上「每一個多少」</h2>
+      <p class="myth"><b>迷思：</b>把「枚數」直接當成「錢」，例如 x 枚 10 元硬幣寫成 x 元，或把 5 元硬幣的「枚數」直接加進總價。</p></div>
+    <div class="real" id="real-coin"></div>
+  </header>
+  <div class="bench">
+    <div class="panel"><h3>調整硬幣數量</h3>
+      <div class="ctl"><label for="c10">10 元硬幣 <output id="c10o">x = 4</output></label><input type="range" id="c10" min="0" max="10" value="4"></div>
+      <div class="ctl"><label for="c5">5 元硬幣 <output id="c5o">3 枚</output></label><input type="range" id="c5" min="0" max="8" value="3"></div>
+      <p class="note">也可以把下面的硬幣<b>拖進錢包</b>（手機上先點硬幣、再點錢包）；點錢包裡的硬幣可以拿出來。</p>
+      <div class="tray"><div class="chip coin c10" draggable="true" data-coin="10" tabindex="0" aria-label="10 元硬幣">10</div><div class="chip coin c5" draggable="true" data-coin="5" tabindex="0" aria-label="5 元硬幣">5</div></div>
+      <div class="eq" id="coinTotal"></div>
+    </div>
+    <div class="stage"><h3>錢包</h3>
+      <div class="drop purse" id="purse" aria-label="錢包"></div>
+      <h3 style="margin-top:12px">哪一個式子永遠等於錢包裡的錢？</h3>
+      <p class="note">每張卡片會用目前的硬幣數量即時計算。把你認為正確的卡片<b>拖到下方驗證區</b>（或點一下卡片），程式會把 x＝0 到 10 全部試一遍。</p>
+      <div class="cards" id="coinCards"></div>
+      <div class="drop slot" id="coinSlot" style="margin-top:10px"><span class="note">把式子卡片拖到這裡驗證</span></div>
+      <div class="msg" id="coinMsg"></div>
+    </div>
+  </div>
+  <div class="tasks"><h3>探究任務</h3><ol>
+    <li>把 10 元硬幣調成 0 枚。哪一張錯誤的卡片「剛好」也對了？<span class="ask">提問：只試一組數字就說式子是對的，可靠嗎？</span></li>
+    <li>把 5 元硬幣固定，只拉動 10 元硬幣。卡片「x＋5×…」少掉的錢怎麼變？<span class="ask">提問：少掉的錢跟 x 有什麼關係？為什麼剛好是 9x？</span></li>
+    <li>用自己的話說：「x 枚 10 元硬幣」為什麼寫成 10x，而不是 x？<span class="ask">後設認知：列式前，我有先分清楚「個數」和「每個多少」嗎？</span></li>
+  </ol></div>
+</section>
+
+<!-- ② 分配律面積 -->
+<section class="lab" id="lab-area">
+  <header>
+    <div><h2><small>M1｜學習內容 A-7-1</small>分配律面積：括號外的數要乘到「每一塊」</h2>
+      <p class="myth"><b>迷思：</b>a(px＋b) 只乘第一項，寫成 apx＋b；括號前是負數時，負負得正沒有變號。</p></div>
+    <div class="real" id="real-area"></div>
+  </header>
+  <div class="bench">
+    <div class="panel"><h3>調整參數</h3>
+      <div class="ctl"><label for="aA">括號外的數 a <output id="aAo"></output></label><input type="range" id="aA" min="-6" max="6" value="3"></div>
+      <div class="ctl"><label for="aP">x 的係數 p <output id="aPo"></output></label><input type="range" id="aP" min="1" max="4" value="2"></div>
+      <div class="ctl"><label for="aB">括號內的常數 b <output id="aBo"></output></label><input type="range" id="aB" min="-9" max="9" value="4"></div>
+      <div class="ctl"><label for="aX">代入的 x 值 <output id="aXo"></output></label><input type="range" id="aX" min="1" max="6" value="2"></div>
+      <div class="btns"><button class="btn" id="aPre">載入 −2(x − 3)</button><button class="btn" id="aErr" aria-pressed="false">顯示「只乘第一項」的錯誤</button></div>
+    </div>
+    <div class="stage"><h3>面積模型</h3>
+      <div class="eq" id="areaEq"></div>
+      <svg id="areaSvg" viewBox="0 0 640 230" role="img" aria-label="分配律面積模型"></svg><p class="note" id="areaCap"></p>
+      <div class="cards" id="areaCards"></div>
+      <div class="msg" id="areaMsg"></div>
+    </div>
+  </div>
+  <div class="tasks"><h3>探究任務</h3><ol>
+    <li>打開「只乘第一項」，看虛線那一塊。它的面積是多少？跟 a、b 有什麼關係？<span class="ask">對比範例：apx＋b 和 apx＋ab 差在哪一塊？</span></li>
+    <li>把 a 拉到負數，b 也拉到負數。紅色塊（負的）有幾塊？兩個負數相乘的那一塊是什麼顏色？<span class="ask">反例：(−2)×(−3) 如果寫成 −6，代入 x 驗算會差多少？</span></li>
+    <li>把 b 調成 0。這時「只乘第一項」還會錯嗎？為什麼？<span class="ask">換位思考：如果你是出題老師，會怎麼設計選項來抓這個錯誤？</span></li>
+  </ol></div>
+</section>
+
+<!-- ③ 等量公理天平 -->
+<section class="lab" id="lab-bal">
+  <header>
+    <div><h2><small>M2｜學習內容 A-7-3</small>等量公理天平：兩邊要做「一樣的事」</h2>
+      <p class="myth"><b>迷思：</b>只對方程式的一邊加減乘除，或兩邊做的事不一樣，例如左邊減 20、右邊只減 10。</p></div>
+    <div class="real" id="real-bal"></div>
+  </header>
+  <div class="bench">
+    <div class="panel"><h3>自己出題</h3>
+      <div class="ctl"><label for="bA">左邊有幾個 x <output id="bAo"></output></label><input type="range" id="bA" min="1" max="4" value="3"></div>
+      <div class="ctl"><label for="bB">左邊有幾個 1 <output id="bBo"></output></label><input type="range" id="bB" min="0" max="8" value="2"></div>
+      <div class="ctl"><label for="bX">神秘的 x 是多少（解出後揭曉） <output id="bXo">?</output></label><input type="range" id="bX" min="1" max="6" value="3"></div>
+      <div class="btns"><button class="btn" id="bNew">隨機換一題</button><button class="btn" id="bNew2">兩邊都有 x 的題目</button></div>
+      <h3 style="margin-top:12px">兩邊同時做</h3>
+      <div class="btns" id="bOps"></div>
+      <h3 style="margin-top:12px">只動一邊（試試看會怎樣）</h3>
+      <p class="note">把砝碼<b>拖到天平的左盤或右盤</b>（手機上先點砝碼、再點盤子）；點盤子上的東西可以拿掉。</p>
+      <div class="tray"><div class="chip xb" draggable="true" data-k="x" tabindex="0" aria-label="x 盒子">x</div><div class="chip ub" draggable="true" data-k="u" tabindex="0" aria-label="1 公克砝碼">1</div></div>
+    </div>
+    <div class="stage"><h3>天平</h3>
+      <div class="eq" id="balEq"></div>
+      <div class="stagebox"><svg id="balSvg" viewBox="0 0 640 330" role="img" aria-label="等量公理天平"></svg>
+        <div class="zones"><div class="drop" id="zoneL" data-side="L" aria-label="左盤"></div><div class="drop" id="zoneR" data-side="R" aria-label="右盤"></div></div></div>
+      <div class="msg" id="balMsg"></div>
+      <div class="hist" id="balHist"></div>
+    </div>
+  </div>
+  <div class="tasks"><h3>探究任務</h3><ol>
+    <li>只從左盤拿走一個 1，天平怎麼了？方程式的「＝」變成什麼？要怎麼補救？<span class="ask">提問：「移項變號」其實是天平上的哪一個動作？</span></li>
+    <li>用「兩邊同時做」解出 x，並看紀錄裡每一步寫了什麼。<span class="ask">後設認知：每一步我都能說出「兩邊同時做了什麼」嗎？</span></li>
+    <li>試試「兩邊都有 x 的題目」：先拿掉 x 還是先拿掉 1？兩種順序答案一樣嗎？<span class="ask">對比範例：比較同學不同順序的紀錄。</span></li>
+  </ol></div>
+</section>
+
+<!-- ④ 代入偵探 -->
+<section class="lab" id="lab-sub">
+  <header>
+    <div><h2><small>M3｜學習內容 A-7-2、A-7-3</small>代入偵探：「解」就是讓兩邊相等的數</h2>
+      <p class="myth"><b>迷思：</b>不會把數代回方程式檢驗；以為解就是讓式子等於 0 的數；解完不驗算。</p></div>
+    <div class="real" id="real-sub"></div>
+  </header>
+  <div class="btns" role="group" aria-label="偵探任務"><button class="btn pri" data-sm="0">任務 A：一個 x，四個方程式</button><button class="btn" data-sm="1">任務 B：3(2x − 1) = 9</button><button class="btn" data-sm="2">任務 C：1 + ⅔(x − 6) = 7</button></div>
+  <div class="bench">
+    <div class="panel"><h3>改變 x</h3>
+      <div class="ctl"><label for="sX">x <output id="sXo"></output></label><input type="range" id="sX" min="-6" max="20" step="1" value="0"></div>
+      <div class="btns" id="sQuick"></div>
+      <div class="msg" id="subMsg"></div>
+    </div>
+    <div class="stage"><h3 id="subTitle"></h3>
+      <div id="subBody"></div>
+      <svg id="subSvg" viewBox="0 0 640 300" role="img" aria-label="左式與右式的圖形"></svg>
+      <p class="note" id="subLegend"></p>
+    </div>
+  </div>
+  <div class="tasks"><h3>探究任務</h3><ol>
+    <li>任務 A：把 x 拉到 3，哪一個方程式的左右兩邊相等？選 3x＋3＝9 的同學，代進去會得到多少？<span class="ask">提問：「看起來像」和「代進去算」哪個可靠？</span></li>
+    <li>任務 B：圖上兩條線在哪裡相交？交點的 x 和方程式的解有什麼關係？<span class="ask">反例：x＝5 讓 2x − 1＝9，為什麼它不是 3(2x − 1)＝9 的解？</span></li>
+    <li>任務 C：分別點 12、16、18，看左式差右式多少，再找出真正的解。<span class="ask">後設認知：解完題目，我有沒有把答案代回原式？</span></li>
+  </ol></div>
+</section>
+
+<!-- ⑤ 情境條件 -->
+<section class="lab" id="lab-cond">
+  <header>
+    <div><h2><small>M5｜學習內容 N-7-9、A-7-3｜BUCK 讀題</small>情境條件：「滿 1100 元」不是「剛好 1100 元」</h2>
+      <p class="myth"><b>迷思：</b>讀題時漏掉條件，把「滿……元」當成「剛好……元」；沒有把答案代回情境檢查。</p></div>
+    <div class="real" id="real-cond"></div>
+  </header>
+  <div class="bench">
+    <div class="panel"><h3>情境（依 115 年會考第 10 題解析整理）</h3>
+      <p style="font-size:14px">兄妹一起結帳，合計<b class="k">滿 1100 元折 200 元</b>，折扣後的金額依兩人<b>原價的比例</b>分攤。哥哥的原價是 <b>720 元</b>，最後付了 <b>600 元</b>。妹妹的原價是多少？</p>
+      <div class="ctl"><label for="cP">妹妹的原價 <output id="cPo"></output></label><input type="range" id="cP" min="300" max="600" step="10" value="380"></div>
+      <div class="btns" id="cQuick"></div>
+    </div>
+    <div class="stage"><h3>結帳台</h3>
+      <svg id="condSvg" viewBox="0 0 640 230" role="img" aria-label="合計金額與折扣門檻"></svg>
+      <div class="eq" id="condEq"></div>
+      <div class="msg" id="condMsg"></div>
+    </div>
+  </div>
+  <div class="tasks"><h3>探究任務</h3><ol>
+    <li>從 300 元慢慢往上拉，合計金額在哪裡「跨過」1100 元？跨過的前後，哥哥要付的錢有什麼變化？<span class="ask">BUCK：圈出關鍵字 C「滿」，它代表「大於或等於」。</span></li>
+    <li>拉到 380 元：合計剛好 1100 元，有折扣嗎？哥哥付的是 600 元嗎？<span class="ask">反例與誘答：17.92% 的考生選 380，他們用了哪個算式？</span></li>
+    <li>找出讓哥哥剛好付 600 元的價錢，並用「哥哥付了原價的幾分之幾」說明。<span class="ask">溯源重構：比例分攤 → 總額也是總原價的 5/6。</span></li>
+  </ol></div>
+</section>
+
+<div class="foot">題目與全國選項作答比例取自「0分析」資料夾：學習扶助 109–114 年七年級篩選測驗考古題與全國篩選測驗各題作答比例，以及心測中心國中教育會考試題分析（與《偉大航道學力航海圖》同一份資料）。實驗台中的數值、圖形與情境由程式依題目結構產生，用來探究，不是原題。</div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* 真題資料（與闖關島、教師網頁相同來源） */
+const REAL={
+ 'S111-7-5':{src:'111 年 5 月七年級篩選測驗第 5 題',q:'x 枚 10 元硬幣和 3 枚 5 元硬幣的總金額',opts:['x + 3','10x + 3','x + 5 × 3','10x + 5 × 3'],ans:3,rates:[.03,.06,.06,.85]},
+ 'S113-7-7':{src:'113 年 5 月七年級篩選測驗第 7 題',q:'買 5 枝原子筆（每枝 x 元）和 1 個 39 元立可帶，共 99 元',opts:['x + 39 = 99','5x + 39 = 99','5(x + 39) = 99','5 + x + 39 = 99'],ans:1,rates:[.05,.82,.10,.04]},
+ 'S113-7-11':{src:'113 年 5 月七年級篩選測驗第 11 題',q:'含 −30(2x − 9) 的化簡',opts:['−20x − 9','−40x + 9','−40x + 270','−40x − 270'],ans:2,rates:[.08,.11,.55,.25],note:{1:'只乘第一項',3:'負負得正沒變號'}},
+ 'S114-7-6':{src:'114 年 5 月七年級篩選測驗第 6 題',q:'含 −2(x − 3) 的化簡',opts:['7x + 8','3x + 5','3x − 4','3x − 7'],ans:1,rates:[.09,.54,.19,.18],note:{2:'只乘第一項',3:'負負得正沒變號'}},
+ 'S114-7-10':{src:'114 年 5 月七年級篩選測驗第 10 題',q:'哪一個變形符合等量公理',opts:['½x + 1 = 15 + ½y','x + 2 = 25 + y','5x − 10 = 20 + y','50x + 100 = 300 + 10y'],ans:3,rates:[.08,.13,.22,.57],note:{0:'左除以 10、右除以 2',1:'左除以 5、右減 5',2:'左減 20、右只減 10'}},
+ 'S111-7-12':{src:'111 年 5 月七年級篩選測驗第 12 題',q:'解題過程從哪一步開始出錯',opts:['步驟一','步驟二','步驟三','步驟四'],ans:1,rates:[.09,.65,.16,.10]},
+ 'S112-7-8':{src:'112 年 5 月七年級篩選測驗第 8 題',q:'x = 3 是哪一個方程式的解',opts:['x + 2 = 1','2x + 1 = 0','3x + 3 = 9','x/3 − 2 = −1'],ans:3,rates:[.08,.06,.12,.73]},
+ 'S112-7-1':{src:'112 年 5 月七年級篩選測驗第 1 題',q:'3(2x − 1) = 9 的解',opts:['1','2','5','6'],ans:1,rates:[.08,.70,.11,.10]},
+ 'S113-7-19':{src:'113 年 5 月七年級篩選測驗第 19 題',q:'1 + ⅔(x − 6) = 7 的解',opts:['12','15','16','18'],ans:1,rates:[.16,.53,.17,.15]},
+ 'C115-10':{src:'115 年國中教育會考第 10 題',q:'妹妹的原價',opts:['360','380','460','480'],ans:3,rates:[.0672,.1792,.1098,.6413]}
+};
+const pct=r=>+(r*100).toFixed(2)+'%';
+function realBox(el,ids){
+  el.innerHTML='<h3>真題連結｜全國選項作答比例</h3>'+ids.map(id=>{const r=REAL[id];return `<div style="margin-top:8px"><b>${esc(r.src)}</b><div class="note">${esc(r.q)}</div>`+
+    r.opts.map((o,i)=>`<div class="bar ${i===r.ans?'ok':''}"><span class="o">(${'ABCD'[i]})</span><span class="x">${esc(o)}${i===r.ans?' ✔':r.note&&r.note[i]?` <em>${esc(r.note[i])}</em>`:''}</span><span class="t"><i style="width:${(r.rates[i]*100).toFixed(1)}%"></i></span><span class="p">${pct(r.rates[i])}</span></div>`).join('')+'</div>'}).join('');
+}
+/* KaTeX：載入失敗時退回純文字 */
+function tex(el,s){if(window.katex){try{katex.render(s,el,{throwOnError:false,displayMode:false});return}catch(e){}}el.textContent=s.replace(/\\[a-z]+/g,' ').replace(/[{}]/g,'')}
+const tx=s=>{if(window.katex){try{return katex.renderToString(s,{throwOnError:false})}catch(e){}}return esc(s)};
+/* p x + q 的 TeX */
+function lin(p,q,v='x'){let s='';if(p){s=(p===1?'':p===-1?'-':p)+v}
+  if(q){s+=s?(q>0?'+':'-')+Math.abs(q):String(q)}return s||'0'}
+const par=n=>n<0?`(${n})`:String(n);
+/* 點選放置：拖曳的備援（觸控裝置） */
+let picked=null;
+function pickable(els,onPick){els.forEach(e=>{e.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain',e.dataset.coin||e.dataset.k||e.dataset.card);ev.dataTransfer.effectAllowed='copy'});
+  e.addEventListener('click',()=>{const on=!e.classList.contains('sel');$$('.chip.sel,.ecard.sel').forEach(x=>x.classList.remove('sel'));picked=on?e:null;if(on)e.classList.add('sel');onPick&&onPick(picked)});
+  e.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();e.click()}})})}
+function dropZone(z,onDrop){z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});
+  z.addEventListener('dragleave',()=>z.classList.remove('over'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');onDrop(e.dataTransfer.getData('text/plain'))});
+  z.addEventListener('click',e=>{if(picked&&e.target===z||picked&&!e.target.closest('[data-rm]')){const v=picked.dataset.coin||picked.dataset.k||picked.dataset.card;onDrop(v)}})}
+
+/* ---------- ① 列式工坊 ---------- */
+const coin={x:4,m:3,slot:null};
+const COINCARDS=[{id:'a',t:m=>`x+${m}`,f:(x,m)=>x+m},{id:'b',t:m=>`10x+${m}`,f:(x,m)=>10*x+m},{id:'c',t:m=>`x+5\\times ${m}`,f:(x,m)=>x+5*m},{id:'d',t:m=>`10x+5\\times ${m}`,f:(x,m)=>10*x+5*m}];
+function coinRender(){
+  const {x,m}=coin;$('#c10').value=x;$('#c5').value=m;$('#c10o').textContent=`x = ${x}`;$('#c5o').textContent=`${m} 枚`;
+  const tot=10*x+5*m;
+  $('#purse').innerHTML=Array(x).fill(0).map((_,i)=>`<button class="chip coin c10" data-rm="10" aria-label="拿出一枚 10 元">10</button>`).join('')+Array(m).fill(0).map(()=>`<button class="chip coin c5" data-rm="5" aria-label="拿出一枚 5 元">5</button>`).join('')||'<span class="note">錢包是空的</span>';
+  tex($('#coinTotal'),`10\\times ${x}+5\\times ${m}=${tot}\\text{ 元}`);
+  $('#coinCards').innerHTML=COINCARDS.map(c=>{const v=c.f(x,m),ok=v===tot;return `<div class="ecard ${ok?'ok':'no'}" draggable="true" data-card="${c.id}" tabindex="0" role="button" aria-label="式子卡片"><span class="tag">${ok?'＝ 錢包':'≠ 錢包'}</span><div>${tx(c.t(m))}</div><div class="v">代入 x＝${x}：${v} 元${ok?'':`，${tot-v>0?'少了':'多了'} ${Math.abs(tot-v)} 元`}</div></div>`}).join('');
+  pickable($$('#coinCards .ecard'),p=>{if(p)coinCheck(p.dataset.card)});
+  if(coin.slot)coinCheck(coin.slot,true);
+}
+function coinCheck(id,quiet){const c=COINCARDS.find(c=>c.id===id);if(!c)return;coin.slot=id;$$('.sel').forEach(e=>e.classList.remove('sel'));picked=null;
+  const m=coin.m,bad=[];for(let x=0;x<=10;x++){if(c.f(x,m)!==10*x+5*m)bad.push(x)}
+  $('#coinSlot').innerHTML=`${tx(c.t(m)+'\\;\\overset{?}{=}\\;10x+5\\times '+m)}`;
+  const msg=$('#coinMsg');
+  if(!bad.length){msg.className='msg good';msg.textContent=`x＝0 到 10 全部驗證通過！${c.id==='d'?'10x 是 10 元硬幣的錢，5×'+m+' 是 5 元硬幣的錢。':''}`}
+  else{const ok=11-bad.length;msg.className='msg bad';msg.textContent=`不行：x＝${bad.slice(0,4).join('、')}${bad.length>4?'…':''} 時就不等於錢包裡的錢${ok?`（只有 ${ok} 個 x 剛好對，但不能只靠一組數字）`:''}。想一想：哪一種硬幣的「枚數」沒有乘上面額？`}}
+$('#c10').oninput=e=>{coin.x=+e.target.value;coinRender()};
+$('#c5').oninput=e=>{coin.m=+e.target.value;coinRender()};
+pickable($$('#lab-coin .tray .chip'));
+dropZone($('#purse'),v=>{if(v==='10'&&coin.x<10)coin.x++;else if(v==='5'&&coin.m<8)coin.m++;coinRender()});
+$('#purse').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;e.stopPropagation();if(b.dataset.rm==='10')coin.x--;else coin.m--;coinRender()});
+dropZone($('#coinSlot'),v=>coinCheck(v));
+realBox($('#real-coin'),['S111-7-5','S113-7-7']);
+
+/* ---------- ② 分配律面積 ---------- */
+const ar={a:3,p:2,b:4,x:2,err:false};
+function areaRender(){
+  const {a,p,b,x,err}=ar;['aA','aP','aB','aX'].forEach((id,i)=>$('#'+id).value=[a,p,b,x][i]);
+  $('#aAo').textContent=a;$('#aPo').textContent=p;$('#aBo').textContent=b;$('#aXo').textContent=x;
+  const inner=lin(p,b),right=lin(a*p,a*b);
+  tex($('#areaEq'),err?`${a===1?'':a===-1?'-':a}(${inner})\\;\\neq\\;${lin(a*p,b)}`:`${a===1?'':a===-1?'-':a}(${inner})=${par(a)}\\cdot ${p===1?'':p}x+${par(a)}\\cdot ${par(b)}=${right}`);
+  $('#areaEq').className='eq '+(err&&b&&a!==1?'bad':'good');
+  /* SVG：高 |a|，寬 p·x 與 |b|（以 x 的代入值換算長度） */
+  const W=560,H=170,ox=60,oy=40,wx=p*x,wb=Math.abs(b),tot=wx+wb||1,u=Math.min(W/tot,60),hh=Math.min(H/Math.max(Math.abs(a),1),40)*Math.abs(a);
+  const pos=v=>v>=0;const c1=a*p,c2=a*b;
+  const cell=(X,w,val,lab,miss)=>`<rect x="${X}" y="${oy}" width="${Math.max(w,0)}" height="${hh}" fill="${miss?'none':pos(val)?'var(--xbox)':'var(--neg)'}" fill-opacity="${miss?0:.75}" stroke="${miss?'var(--red)':'var(--ink)'}" stroke-width="${miss?3:1.5}" ${miss?'stroke-dasharray="8 6"':''}/>`+
+    (w>34?`<text x="${X+w/2}" y="${oy+hh/2+6}" text-anchor="middle" font-size="17" font-weight="700" fill="${miss?'var(--red)':'#fff'}" font-family="IBM Plex Mono,monospace">${lab}</text>`:'');
+  let s='';
+  s+=`<text x="${ox-10}" y="${oy+hh/2+6}" text-anchor="end" font-size="18" font-weight="700" fill="var(--ink)">${a}</text>`;
+  s+=`<text x="${ox+wx*u/2}" y="${oy-12}" text-anchor="middle" font-size="16" fill="var(--ink)">${p===1?'':p}x（=${p*x}）</text>`;
+  if(b)s+=`<text x="${ox+wx*u+wb*u/2}" y="${oy-12}" text-anchor="middle" font-size="16" fill="var(--ink)">${b}</text>`;
+  s+=cell(ox,wx*u,c1,`${c1}x`,false);
+  if(b)s+=cell(ox+wx*u,wb*u,c2,err?`漏了 ${c2}`:`${c2>0?'+':''}${c2}`,err);
+  $('#areaCap').textContent=`藍色＝正、紅色＝負；每一塊都是「括號外的數 × 括號內的一項」。目前 x＝${x}，總面積＝${a}×(${p*x}${b<0?'−':'+'}${Math.abs(b)})＝${a*(p*x+b)}。`;
+  $('#areaSvg').innerHTML=s;
+  const v=a*(p*x+b),forms=[{t:right,f:a*p*x+a*b,n:'正確：每一項都乘'},{t:lin(a*p,b),f:a*p*x+b,n:'只乘第一項'},{t:lin(a*p,-a*b),f:a*p*x-a*b,n:'第二項正負號弄反'}];
+  $('#areaCards').innerHTML=forms.map(F=>{const ok=F.f===v;return `<div class="ecard ${ok?'ok':'no'}" style="cursor:default"><span class="tag">${ok?'＝ 原式':'≠ 原式'}</span><div>${tx(F.t)}</div><div class="v">${F.n}｜x＝${x} 時：${F.f}（原式 ${v}）</div></div>`}).join('');
+  const m=$('#areaMsg');
+  if(!b){m.className='msg';m.textContent='b＝0 時括號裡只有一項，三種寫法都一樣。把 b 拉開，差別就出現了。'}
+  else if(err){m.className='msg bad';m.textContent=`只乘第一項時，虛線那一塊應該是 ${a}×${par(b)}＝${a*b}，卻被寫成 ${b}，所以不管 x 是多少，結果都差 ${Math.abs(a*b-b)}。`}
+  else if(a<0&&b<0){m.className='msg good';m.textContent=`${par(a)}×${par(b)}＝+${a*b}：兩個負數相乘是正的，所以這一塊是藍色。選 −40x − 270 的 25% 考生就是在這裡出錯。`}
+  else{m.className='msg';m.textContent='拖動滑桿，觀察兩塊面積怎麼變。每一塊都要算到，結果才會等於原式。'}
+}
+['aA','aP','aB','aX'].forEach((id,i)=>$('#'+id).oninput=e=>{let v=+e.target.value;if(id==='aA'&&v===0)v=ar.a>0?-1:1;ar[['a','p','b','x'][i]]=v;areaRender()});
+$('#aPre').onclick=()=>{Object.assign(ar,{a:-2,p:1,b:-3,x:4});areaRender()};
+$('#aErr').onclick=e=>{ar.err=!ar.err;e.target.setAttribute('aria-pressed',ar.err);e.target.classList.toggle('pri',ar.err);areaRender()};
+realBox($('#real-area'),['S113-7-11','S114-7-6']);
+
+/* ---------- ③ 等量公理天平 ---------- */
+const bal={sx:3,L:{x:3,u:2},R:{x:0,u:11},hist:[],solved:false};
+function balNew(a,b,sx,rx){bal.sx=sx;bal.L={x:a,u:b};bal.R={x:rx||0,u:a*sx+b-(rx||0)*sx};bal.hist=[];bal.solved=false;
+  if(bal.R.u<0){bal.L.u-=bal.R.u;bal.R.u=0}
+  bal.w0=wt(bal.L);bal.hist.push({t:eqT(),why:'題目'});balRender()}
+const eqT=()=>`${lin(bal.L.x,bal.L.u)}=${lin(bal.R.x,bal.R.u)}`;
+const wt=s=>s.x*bal.sx+s.u;
+function balOps(){const {L,R}=bal,o=[];
+  if(L.u>0&&R.u>0)o.push({k:'u-',lab:'兩邊各拿走 1',ok:1});
+  if(L.u>0&&R.u>0){const m=Math.min(L.u,R.u);if(m>1)o.push({k:'u-all',lab:`兩邊各拿走 ${m}`,ok:1})}
+  if(L.x>0&&R.x>0)o.push({k:'x-',lab:'兩邊各拿走一個 x'});
+  o.push({k:'u+',lab:'兩邊各放上 1'});
+  for(let d=2;d<=8;d++){if([L.x,L.u,R.x,R.u].every(n=>n%d===0)&&(L.x+R.x)>=d)o.push({k:'d'+d,lab:`兩邊同除以 ${d}`})}
+  return o}
+function balDo(k){const {L,R}=bal;let why='';
+  if(k==='u-'){L.u--;R.u--;why='兩邊同減 1'}
+  else if(k==='u-all'){const m=Math.min(L.u,R.u);L.u-=m;R.u-=m;why=`兩邊同減 ${m}`}
+  else if(k==='x-'){L.x--;R.x--;why='兩邊同減 x'}
+  else if(k==='u+'){L.u++;R.u++;why='兩邊同加 1'}
+  else if(k[0]==='d'){const d=+k.slice(1);[L,R].forEach(s=>{s.x/=d;s.u/=d});why=`兩邊同除以 ${d}`}
+  bal.hist.push({t:eqT(),why,ok:true});balRender()}
+function balOne(side,kind,delta){const s=bal[side];if(delta<0&&s[kind]<=0)return;if(delta>0&&s.x+s.u>=16){balMsg('盤子放不下了，先拿掉一些。','bad');return}
+  s[kind]+=delta;bal.hist.push({t:eqT(),why:`只有${side==='L'?'左':'右'}邊${delta>0?'放上':'拿走'}${kind==='x'?'一個 x':' 1'}`,ok:false});balRender()}
+function balMsg(t,c){const m=$('#balMsg');m.textContent=t;m.className='msg '+(c||'')}
+function balRender(){
+  const {L,R,sx}=bal,lw=wt(L),rw=wt(R),diff=rw-lw,eqOK=diff===0;
+  ['bA','bB','bX'].forEach(id=>$('#'+id).disabled=false);
+  const solvedNow=eqOK&&((L.x===1&&L.u===0&&R.x===0)||(R.x===1&&R.u===0&&L.x===0));
+  if(solvedNow)bal.solved=true;
+  $('#bXo').textContent=bal.solved?sx:'?';
+  tex($('#balEq'),eqOK?eqT():`${lin(L.x,L.u)}\\;\\neq\\;${lin(R.x,R.u)}`);$('#balEq').className='eq '+(eqOK?'good':'bad');
+  const th=Math.max(-16,Math.min(16,diff*2.2)),r=th*Math.PI/180,cx=320,cy=88,arm=210;
+  const end=s=>({x:cx+s*arm*Math.cos(r),y:cy+s*arm*Math.sin(r)});
+  const pan=(p,side)=>{const s=bal[side],items=[];for(let i=0;i<s.x;i++)items.push('x');for(let i=0;i<s.u;i++)items.push('u');
+    let g=`<line x1="${p.x-70}" y1="${p.y+90}" x2="${p.x}" y2="${p.y}" stroke="var(--ink2)" stroke-width="2"/><line x1="${p.x+70}" y1="${p.y+90}" x2="${p.x}" y2="${p.y}" stroke="var(--ink2)" stroke-width="2"/>`+
+      `<path d="M${p.x-95} ${p.y+90} h190 q-10 26 -95 26 q-85 0 -95 -26z" fill="var(--paper2)" stroke="var(--ink2)" stroke-width="2"/>`;
+    items.forEach((k,i)=>{const col=i%6,row=Math.floor(i/6),X=p.x-84+col*29,Y=p.y+62-row*30;
+      g+=k==='x'?`<g data-rm="${side}x" style="cursor:pointer"><rect x="${X}" y="${Y}" width="27" height="27" rx="4" fill="var(--xbox)"/><text x="${X+13.5}" y="${Y+19}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" font-family="IBM Plex Mono,monospace">x</text></g>`
+        :`<g data-rm="${side}u" style="cursor:pointer"><circle cx="${X+13.5}" cy="${Y+14}" r="13" fill="var(--unit)"/><text x="${X+13.5}" y="${Y+19}" text-anchor="middle" font-size="14" font-weight="700" fill="#2a1a0f" font-family="IBM Plex Mono,monospace">1</text></g>`});
+    return g};
+  const pl=end(-1),pr=end(1);
+  $('#balSvg').innerHTML=`<path d="M${cx-60} 318 h120 l-40 -16 v-200 h-40 v200z" fill="var(--sea)" opacity=".85"/><g transform="rotate(${th} ${cx} ${cy})" style="transition:transform .4s"><rect x="${cx-arm-6}" y="${cy-6}" width="${2*arm+12}" height="12" rx="6" fill="var(--gold)"/></g><circle cx="${cx}" cy="${cy}" r="10" fill="var(--red)"/>`+pan(pl,'L')+pan(pr,'R')+
+    `<text x="${cx}" y="40" text-anchor="middle" font-size="15" font-weight="700" fill="${eqOK?'var(--good)':'var(--bad)'}">${eqOK?'平衡：兩邊一樣重':diff>0?'右邊比較重，天平歪了':'左邊比較重，天平歪了'}</text>`;
+  $('#bOps').innerHTML=balOps().map(o=>`<button class="btn" data-op="${o.k}" ${eqOK?'':'disabled'}>${o.lab}</button>`).join('');
+  $('#balHist').innerHTML='<b>解題紀錄</b>'+bal.hist.map(h=>`<div>${tx(h.t)}<span class="why" style="color:${h.ok===false?'var(--bad)':'inherit'}">${esc(h.why)}</span></div>`).join('');
+  if(!eqOK)balMsg(`天平不平衡了！你只動了一邊，「＝」已經不成立。方程式的兩邊要做一樣的事：把另一邊也做同樣的動作，或把剛剛的動作還原。（${REAL['S114-7-10'].src}，有 22% 考生選了「左邊減 20、右邊只減 10」的寫法。）`,'bad');
+  else if(solvedNow)balMsg(`解出來了：x＝${sx}！把 x＝${sx} 代回原題，兩邊都等於 ${bal.w0}。`,'good');
+  else balMsg('天平平衡。用「兩邊同時做」的按鈕，讓一邊只剩一個 x。','');
+}
+$('#bOps').addEventListener('click',e=>{const b=e.target.closest('[data-op]');if(b)balDo(b.dataset.op)});
+$('#balSvg').addEventListener('click',e=>{const g=e.target.closest('[data-rm]');if(!g)return;e.stopPropagation();const v=g.getAttribute('data-rm');balOne(v[0],v[1],-1)});
+const live=on=>{$('#lab-bal .stagebox').classList.toggle('live',on);$$('.zones .drop').forEach(z=>z.classList.toggle('armed',on))};
+pickable($$('#lab-bal .tray .chip'),p=>live(!!p));
+$$('#lab-bal .tray .chip').forEach(c=>{c.addEventListener('dragstart',()=>live(true));c.addEventListener('dragend',()=>live(!!picked))});
+['zoneL','zoneR'].forEach(id=>{const z=$('#'+id);dropZone(z,v=>{if(v==='x'||v==='u'){balOne(z.dataset.side,v,1);$$('.sel').forEach(e=>e.classList.remove('sel'));picked=null;live(false)}})});
+const balFromSliders=()=>balNew(+$('#bA').value,+$('#bB').value,+$('#bX').value,0);
+['bA','bB','bX'].forEach(id=>$('#'+id).oninput=e=>{$('#'+id+'o').textContent=id==='bX'?'?':e.target.value;balFromSliders()});
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+$('#bNew').onclick=()=>{const a=rnd(2,4),b=rnd(1,8),x=rnd(1,6);$('#bA').value=a;$('#bB').value=b;$('#bX').value=x;$('#bAo').textContent=a;$('#bBo').textContent=b;balNew(a,b,x,0)};
+$('#bNew2').onclick=()=>{const a=rnd(3,4),rx=rnd(1,a-1),b=rnd(0,5),x=rnd(1,5);balNew(a,b,x,rx)};
+realBox($('#real-bal'),['S114-7-10','S111-7-12']);
+
+/* ---------- ④ 代入偵探 ---------- */
+const FR=(n,d)=>({n,d});
+const SUBS=[
+ {title:'x 是多少時，哪一個方程式成立？',real:'S112-7-8',min:-6,max:10,start:0,quick:[3],
+  eqs:[{t:'x+2=1',L:x=>x+2,R:()=>1,Ls:x=>`${par(x)}+2`},{t:'2x+1=0',L:x=>2*x+1,R:()=>0,Ls:x=>`2\\times${par(x)}+1`},{t:'3x+3=9',L:x=>3*x+3,R:()=>9,Ls:x=>`3\\times${par(x)}+3`},{t:'\\frac{x}{3}-2=-1',L:x=>x/3-2,R:()=>-1,Ls:x=>`\\frac{${x}}{3}-2`}]},
+ {title:'3(2x − 1) = 9',real:'S112-7-1',min:-4,max:8,start:5,quick:[1,2,5,6],
+  eqs:[{t:'3(2x-1)=9',L:x=>3*(2*x-1),R:()=>9,Ls:x=>`3(2\\times${par(x)}-1)`}]},
+ {title:'1 + ⅔(x − 6) = 7',real:'S113-7-19',min:0,max:20,start:18,quick:[12,15,16,18],
+  eqs:[{t:'1+\\frac{2}{3}(x-6)=7',L:x=>1+2*(x-6)/3,R:()=>7,Ls:x=>`1+\\frac{2}{3}(${x}-6)`}]}];
+const sub={m:0,x:0},SUBCOL=['var(--xbox)','var(--gold)','var(--red)','var(--good)'];
+const nf=v=>Number.isInteger(v)?String(v):(Math.round(v*100)/100).toString();
+const fracS=v=>{if(Number.isInteger(v))return String(v);for(const d of [3,2,6]){const n=v*d;if(Math.abs(n-Math.round(n))<1e-9)return `${Math.round(n)<0?'-':''}\\frac{${Math.abs(Math.round(n))}}{${d}}`}return nf(v)};
+function subRender(){const S=SUBS[sub.m],x=sub.x;$('#sX').min=S.min;$('#sX').max=S.max;$('#sX').value=x;$('#sXo').textContent=x;
+  $('#subTitle').innerHTML=sub.m?`方程式 ${tx(S.eqs[0].t)}`:'x 代入四個方程式';
+  $('#sQuick').innerHTML=(sub.m?'<span class="note" style="width:100%">真題選項，點一下就代入：</span>':'<span class="note" style="width:100%">真題問的是 x＝3：</span>')+S.quick.map(q=>`<button class="btn" data-q="${q}">x＝${q}</button>`).join('');
+  const rows=S.eqs.map(E=>{const l=E.L(x),r=E.R(x),ok=Math.abs(l-r)<1e-9;return {E,l,r,ok}});
+  $('#subBody').innerHTML=`<div class="eqgrid">`+rows.map(({E,l,r,ok},i)=>`<div class="sub ${ok?'ok':'no'}"${sub.m?'':` style="border-left:8px solid ${SUBCOL[i]}"`}><div class="lt">${tx(E.t)}</div><div class="lt">左邊 ${tx(`${E.Ls(x)}=${fracS(l)}`)}</div><div class="lt">右邊 ${tx(fracS(r))}</div><div class="res">${ok?`✔ 兩邊相等，x＝${x} 是解`:`✘ 左邊${l>r?'比右邊大':'比右邊小'} ${tx(fracS(Math.abs(l-r)))}`}</div></div>`).join('')+'</div>';
+  const m=$('#subMsg'),R=REAL[S.real];
+  if(sub.m===0){const hit=rows.filter(r=>r.ok);m.className='msg '+(hit.length?'good':'');m.textContent=hit.length?`x＝${x} 讓 ${hit.length} 個方程式兩邊相等。${x===3?`真題正解是 (D)，全國 73% 答對；12% 選 (C) 3x＋3＝9，代入後左邊是 12，不是 9。`:''}`:'目前沒有任何方程式兩邊相等，繼續移動 x。'}
+  else{const ok=rows[0].ok,i=R.opts.indexOf(String(x));m.className='msg '+(ok?'good':i>=0?'bad':'');
+    m.textContent=ok?`找到了！x＝${x} 讓兩邊都等於 ${nf(rows[0].r)}，全國 ${Math.round(R.rates[R.ans]*100)}% 考生答對。`:i>=0?`x＝${x} 是選項 (${'ABCD'[i]})，全國 ${Math.round(R.rates[i]*100)}% 考生選它，但代入後左邊是 ${nf(rows[0].l)}，不等於 ${nf(rows[0].r)}。`:`左邊 ${nf(rows[0].l)}、右邊 ${nf(rows[0].r)}，還沒相等。`}
+  subGraph(S,x)}
+function subGraph(S,x){const W=640,H=300,p=40,xs=[S.min,S.max];let ys=[];S.eqs.forEach(E=>{xs.forEach(v=>{ys.push(E.L(v),E.R(v))})});
+  let y0=Math.min(...ys,0),y1=Math.max(...ys,0);const pad=(y1-y0)*.08||1;y0-=pad;y1+=pad;
+  const X=v=>p+(v-S.min)/(S.max-S.min)*(W-2*p),Y=v=>H-p-(v-y0)/(y1-y0)*(H-2*p);
+  const cols=SUBCOL;
+  let s=`<line x1="${p}" y1="${Y(0)}" x2="${W-p}" y2="${Y(0)}" stroke="var(--line)" stroke-width="1.5"/><line x1="${X(0)}" y1="${p-10}" x2="${X(0)}" y2="${H-p}" stroke="var(--line)" stroke-width="1.5"/>`;
+  for(let v=S.min;v<=S.max;v++){if(v%2===0)s+=`<text x="${X(v)}" y="${H-p+18}" text-anchor="middle" font-size="11" fill="var(--ink2)" font-family="IBM Plex Mono,monospace">${v}</text>`}
+  S.eqs.forEach((E,i)=>{const c=sub.m?'var(--xbox)':cols[i];s+=`<line x1="${X(S.min)}" y1="${Y(E.L(S.min))}" x2="${X(S.max)}" y2="${Y(E.L(S.max))}" stroke="${c}" stroke-width="3"/>`;
+    if(sub.m)s+=`<line x1="${X(S.min)}" y1="${Y(E.R(0))}" x2="${X(S.max)}" y2="${Y(E.R(0))}" stroke="var(--red)" stroke-width="3" stroke-dasharray="8 6"/>`;
+    else s+=`<line x1="${X(S.min)}" y1="${Y(E.R(0))}" x2="${X(S.max)}" y2="${Y(E.R(0))}" stroke="${c}" stroke-width="1.5" stroke-dasharray="5 5" opacity=".8"/>`;
+    const l=E.L(x),r=E.R(x);s+=`<line x1="${X(x)}" y1="${Y(l)}" x2="${X(x)}" y2="${Y(r)}" stroke="${Math.abs(l-r)<1e-9?'var(--good)':'var(--bad)'}" stroke-width="2.5"/><circle cx="${X(x)}" cy="${Y(l)}" r="6" fill="${c}"/><circle cx="${X(x)}" cy="${Y(r)}" r="5" fill="var(--card)" stroke="${sub.m?'var(--red)':c}" stroke-width="2.5"/>`});
+  s+=`<line x1="${X(x)}" y1="${p-10}" x2="${X(x)}" y2="${H-p}" stroke="var(--ink)" stroke-dasharray="2 4"/><text x="${X(x)}" y="${p-14}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">x＝${x}</text>`;
+  $('#subSvg').innerHTML=s;
+  $('#subLegend').textContent=sub.m?'實線：左式的值；紅色虛線：右式的值。兩條線相交的地方，左右兩邊相等，那個 x 就是解。滑桿上下的直線是「左右差多少」。':'四種顏色各是一個方程式（看卡片左邊的色條）：實線是左式、細虛線是右式。在同一個 x 上，左右兩點重合才是解。'}
+$('#sX').oninput=e=>{sub.x=+e.target.value;subRender()};
+$('#sQuick').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){sub.x=+b.dataset.q;subRender()}});
+$$('[data-sm]').forEach(b=>b.onclick=()=>{sub.m=+b.dataset.sm;sub.x=SUBS[sub.m].start;$$('[data-sm]').forEach(x=>x.classList.toggle('pri',x===b));realBox($('#real-sub'),[SUBS[sub.m].real]);subRender()});
+realBox($('#real-sub'),['S112-7-8']);
+
+/* ---------- ⑤ 情境條件 ---------- */
+const cd={p:380};
+function condRender(){const p=cd.p,B=720,T=B+p,disc=T>=1100,pay=disc?T-200:T,bro=B/T*pay;$('#cP').value=p;$('#cPo').textContent=p+' 元';
+  const W=640,mx=1400,X=v=>40+v/mx*(W-80);
+  let s=`<text x="40" y="24" font-size="14" font-weight="700" fill="var(--ink)">兩人原價合計 ${T} 元</text>`+
+   `<rect x="${X(0)}" y="36" width="${X(B)-X(0)}" height="40" fill="var(--xbox)"/><text x="${(X(0)+X(B))/2}" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">哥哥 720</text>`+
+   `<rect x="${X(B)}" y="36" width="${X(T)-X(B)}" height="40" fill="var(--gold)"/><text x="${(X(B)+X(T))/2}" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#2a1a0f">妹妹 ${p}</text>`+
+   `<line x1="${X(1100)}" y1="28" x2="${X(1100)}" y2="96" stroke="var(--red)" stroke-width="3" stroke-dasharray="6 4"/><text x="${X(1100)}" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)">滿 1100 門檻</text>`+
+   `<text x="40" y="146" font-size="14" font-weight="700" fill="var(--ink)">${disc?`有折扣：實付 ${T} − 200 ＝ ${pay} 元`:`未滿 1100，沒有折扣：實付 ${pay} 元`}</text>`+
+   `<rect x="${X(0)}" y="156" width="${X(bro)-X(0)}" height="34" fill="var(--xbox)" opacity=".85"/><rect x="${X(bro)}" y="156" width="${X(pay)-X(bro)}" height="34" fill="var(--gold)" opacity=".85"/>`+
+   `<text x="${X(0)+8}" y="179" font-size="13" font-weight="700" fill="#fff">哥哥付 ${nf(Math.round(bro*100)/100)}</text>`+
+   `<line x1="${X(600)}" y1="150" x2="${X(600)}" y2="198" stroke="var(--good)" stroke-width="3"/><text x="${X(600)}" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="var(--good)">目標：哥哥付 600</text>`;
+  $('#condSvg').innerHTML=s;
+  tex($('#condEq'),disc?`\\text{哥哥付}=\\frac{720}{${T}}\\times(${T}-200)=${nf(Math.round(bro*100)/100)}`:`\\text{哥哥付}=720\\;(\\text{沒有折扣})`);
+  const ok=Math.abs(bro-600)<1e-9;$('#condEq').className='eq '+(ok?'good':'');
+  const R=REAL['C115-10'],i=R.opts.indexOf(String(p)),m=$('#condMsg');
+  m.className='msg '+(ok?'good':i>=0?'bad':'');
+  m.textContent=ok?`就是 ${p} 元！總原價 ${T}，實付 ${pay}，哥哥付 720×${pay}/${T}＝600，也就是付了原價的 5/6。全國 64.13% 考生答對。`
+   :p===380?'合計剛好 1100 元，有折扣（「滿」包含剛好），但哥哥付的是 589.09 元，不是 600 元。1100 − 720＝380 是把「滿 1100」當成「剛好 1100」，題目並沒有說合計剛好 1100。全國 17.92% 考生選了 380。'
+   :i>=0?`選項 (${'ABCD'[i]}) ${p} 元，全國 ${(R.rates[i]*100).toFixed(2)}% 考生選它。代回情境：${disc?'':`合計 ${T} 元未滿 1100、沒有折扣，`}哥哥付 ${nf(Math.round(bro*100)/100)} 元，不是 600 元。`
+   :!disc?`合計 ${T} 元還沒滿 1100，沒有折扣，哥哥要付全額 720 元。`:`哥哥付 ${nf(Math.round(bro*100)/100)} 元，${bro>600?'比 600 多':'比 600 少'}。`}
+$('#cP').oninput=e=>{cd.p=+e.target.value;condRender()};
+$('#cQuick').innerHTML='<span class="note" style="width:100%">真題選項，點一下代回情境：</span>'+REAL['C115-10'].opts.map(o=>`<button class="btn" data-c="${o}">${o} 元</button>`).join('');
+$('#cQuick').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b){cd.p=+b.dataset.c;condRender()}});
+realBox($('#real-cond'),['C115-10']);
+
+/* ---------- 分頁 ---------- */
+function show(id){$$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.lab===id));$$('.lab').forEach(s=>s.classList.toggle('on',s.id==='lab-'+id));
+  try{localStorage.setItem('gl-lab',id)}catch(e){}if(location.hash!=='#'+id)history.replaceState(null,'','#'+id)}
+$$('nav.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.lab));
+function renderAll(){coinRender();areaRender();balRender();subRender();condRender()}
+$('#bAo').textContent=$('#bA').value;$('#bBo').textContent=$('#bB').value;balNew(3,2,3,0);sub.x=SUBS[0].start;renderAll();
+let start=location.hash.slice(1);if(!$('#lab-'+start)){try{start=localStorage.getItem('gl-lab')}catch(e){}}if(start&&$('#lab-'+start))show(start);
+window.addEventListener('load',renderAll);
+</script>
+</body></html>
