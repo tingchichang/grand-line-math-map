@@ -84,6 +84,9 @@ const lv=r=>r==null?'lv0':r<.6?'lv1':r<.8?'lv2':'lv3';
 const islName=id=>id===CONF.review?'錯題島':(ISL.find(d=>d.id===id)||{}).name||'';
 /* 兩個闖關遊戲共用同一份試算表：島嶼欄位是數字的屬於一元一次方程式闖關島，是主題代碼的屬於寶藏主題群島 */
 const mine=r=>r.isl===CONF.review||ISL.some(d=>d.id===r.isl);
+/* 熱力圖的欄：主題群島依海域（主題）合併，一元一次方程式闖關島依島 */
+const COLS=CONF.groups||ISL.map(d=>({id:d.id,label:d.label||d.id+'．'+d.name}));
+const inCol=(r,id)=>CONF.groups?String(r.isl).split(':')[0]===id:r.isl===id;
 let ROWS=[],F={cls:'all',from:'',q:''};
 try{$('#api').value=localStorage.getItem('gl-eq-api-t')||API_DEFAULT||'';$('#key').value=sessionStorage.getItem('gl-eq-key')||''}catch(e){$('#api').value=API_DEFAULT||''}
 
@@ -128,11 +131,11 @@ function render(){
      <div class="muted">${esc(a.d.fb)}　<a href="${MAIN}" target="_blank" rel="noopener">到航海圖「迷思解藥」看教學步驟 ↗</a></div></div>`).join(''):'<div class="empty">目前沒有學生在任何一座島的答對率低於 60%（以作答 3 題以上計）。</div>'}
    ${oneSide.length?`<p class="muted" style="margin-top:10px">天平島：有 ${new Set(oneSide.map(r=>r.sid)).size} 位學生曾按「只做左邊」，可在課堂上請他們說明天平為什麼會傾斜。</p>`:''}</section>
 
-  <section class="panel"><h2>學生 × 島嶼答對率</h2>
+  <section class="panel"><h2>${CONF.groups?'學生 × 主題（海域）答對率':'學生 × 島嶼答對率'}</h2>
    <div class="legend"><span><i class="lv1"></i>低於 60%</span><span><i class="lv2"></i>60–79%</span><span><i class="lv3"></i>80% 以上</span><span>格內小字為答對／作答題數</span></div>
-   <div class="scroll"><table><thead><tr><th>學生</th>${ISL.map(d=>`<th>${d.label||d.id+'．'+d.name}</th>`).join('')}<th>錯題島</th><th>總計</th><th>最近作答</th></tr></thead><tbody>
-   ${st.map(s=>{const g=graded(s.rows);const cell=id=>{const a=g.filter(r=>r.isl===id);const ok=a.filter(r=>r.ok).length;return `<td class="c ${a.length?lv(ok/a.length):'lv0'}">${a.length?pct(ok,a.length):'—'}${a.length?`<small>${ok}/${a.length}</small>`:''}</td>`};
-     const ok=g.filter(r=>r.ok).length;return `<tr><td><button class="link" data-s="${esc(s.sid)}">${esc(s.sid)} ${esc(s.name)}</button></td>${ISL.map(d=>cell(d.id)).join('')}${cell(CONF.review)}<td class="c ${g.length?lv(ok/g.length):''}">${pct(ok,g.length)}<small>${ok}/${g.length}</small></td><td class="muted">${new Date(Math.max(...s.rows.map(r=>+r.t))).toLocaleDateString('zh-TW')}</td></tr>`}).join('')}
+   <div class="scroll"><table><thead><tr><th>學生</th>${COLS.map(d=>`<th>${esc(d.label)}</th>`).join('')}<th>錯題島</th><th>總計</th><th>最近作答</th></tr></thead><tbody>
+   ${st.map(s=>{const g=graded(s.rows);const cell=id=>{const a=g.filter(r=>inCol(r,id));const ok=a.filter(r=>r.ok).length;return `<td class="c ${a.length?lv(ok/a.length):'lv0'}">${a.length?pct(ok,a.length):'—'}${a.length?`<small>${ok}/${a.length}</small>`:''}</td>`};
+     const ok=g.filter(r=>r.ok).length;return `<tr><td><button class="link" data-s="${esc(s.sid)}">${esc(s.sid)} ${esc(s.name)}</button></td>${COLS.map(d=>cell(d.id)).join('')}${cell(CONF.review)}<td class="c ${g.length?lv(ok/g.length):''}">${pct(ok,g.length)}<small>${ok}/${g.length}</small></td><td class="muted">${new Date(Math.max(...s.rows.map(r=>+r.t))).toLocaleDateString('zh-TW')}</td></tr>`}).join('')}
    </tbody></table></div></section>
 
   <section class="panel"><h2>真題選項分析</h2><p class="muted">只計每位學生第一次作答，避免重複練習灌水；全國比例取自會考試題分析與學習扶助篩選測驗。</p><div id="realBox"></div></section>
